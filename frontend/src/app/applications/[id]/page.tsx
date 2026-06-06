@@ -275,7 +275,7 @@ export default function ApplicationDetailPage() {
                 onClick={() => setActiveTab('resume')}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${activeTab === 'resume' ? 'bg-slate-800 text-white' : 'text-slate-500 hover:text-slate-300'}`}
               >
-                Tailored CV Markdown
+                Tailored CV Preview
               </button>
               <button
                 onClick={() => setActiveTab('cover_letter')}
@@ -337,8 +337,13 @@ export default function ApplicationDetailPage() {
           {/* Previews Frame */}
           <div className="flex-1 p-6 overflow-y-auto max-h-[500px]">
             {activeTab === 'resume' && (
-              <div className="prose prose-invert prose-emerald max-w-none text-slate-300 text-sm leading-relaxed space-y-4">
-                <ReactMarkdown>{resumeMarkdown}</ReactMarkdown>
+              <div className="bg-white text-black p-8 rounded-xl shadow-2xl border border-slate-200 overflow-x-auto max-w-3xl mx-auto my-2">
+                <ResumePrintView
+                  data={app.tailored_cv_data}
+                  userName={user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Applicant'}
+                  userEmail={user?.email || ''}
+                  parsedRequirements={app.job?.parsed_requirements}
+                />
               </div>
             )}
 
