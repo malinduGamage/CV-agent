@@ -111,3 +111,4 @@ class CVGenerateResponse(BaseModel):
     cover_letter: str
     critic_score: int
     critic_feedback: str
+    rendered_cv: Optional[str] = None

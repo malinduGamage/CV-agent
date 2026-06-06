@@ -5,6 +5,7 @@ from typing import List, Dict, Any
 from uuid import UUID
 from datetime import datetime
 
+from jinja2 import Template
 from langchain_core.messages import SystemMessage, HumanMessage
 from backend.app.database.connection import get_db
 from backend.app.database.models import (
@@ -418,11 +419,20 @@ def generate_cv(
     db.add(log)
     db.commit()
 
+    rendered_cv = ""
+    if template:
+        try:
+            template_obj = Template(template.template_source)
+            rendered_cv = template_obj.render(**final_state.get("tailored_cv_data", {}))
+        except Exception as e:
+            print(f"Warning: Failed to render CV template: {e}")
+
     return {
         "application_id": application.id,
         "status": application.status,
         "tailored_cv_data": application.tailored_cv_data,
         "cover_letter": application.cover_letter,
+        "rendered_cv": rendered_cv,
         "critic_score": final_state.get("critic_score", 0),
         "critic_feedback": final_state.get("critic_feedback", "")
     }
@@ -480,6 +490,22 @@ def get_application(
         critic_score = latest_log.output_state.get("critic_score", 85)
         critic_feedback = latest_log.output_state.get("critic_feedback", "")
 
+    # Load and render template
+    rendered_cv = ""
+    template_record = app.cv_template
+    if not template_record:
+        template_record = db.query(CvTemplate).filter(
+            (CvTemplate.user_id == current_user.id) | (CvTemplate.is_public == True)
+        ).first()
+        
+    if template_record:
+        try:
+            template_obj = Template(template_record.template_source)
+            context = app.tailored_cv_data or {}
+            rendered_cv = template_obj.render(**context)
+        except Exception as e:
+            print(f"Warning: Failed to render CV template: {e}")
+
     return {
         "id": app.id,
         "job": {
@@ -490,6 +516,7 @@ def get_application(
         },
         "tailored_cv_data": app.tailored_cv_data,
         "cover_letter": app.cover_letter,
+        "rendered_cv": rendered_cv,
         "status": app.status,
         "applied_at": app.applied_at,
         "critic_score": critic_score,

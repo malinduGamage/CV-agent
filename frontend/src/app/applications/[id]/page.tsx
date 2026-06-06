@@ -179,7 +179,7 @@ export default function ApplicationDetailPage() {
     return md;
   };
 
-  const resumeMarkdown = generateMarkdownResume(app.tailored_cv_data);
+  const resumeMarkdown = app.rendered_cv || generateMarkdownResume(app.tailored_cv_data);
 
   return (
     <DashboardLayout>
