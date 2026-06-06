@@ -1,13 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { apiRequest } from '@/utils/api';
 import ReactMarkdown from 'react-markdown';
+import { useAuth } from '@/components/AuthProvider';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { ResumePrintView } from '@/components/ResumePrintView';
 import { 
   Sparkles, ArrowLeft, Copy, Check, FileText, 
-  BookOpen, Eye, Award, Settings, CheckCircle2 
+  BookOpen, Eye, Award, Settings, CheckCircle2, Download 
 } from 'lucide-react';
 
 export default function ApplicationDetailPage() {
@@ -19,6 +22,58 @@ export default function ApplicationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [copiedText, setCopiedText] = useState('');
   const [activeTab, setActiveTab] = useState<'resume' | 'cover_letter' | 'json'>('resume');
+
+  const printIframeRef = useRef<HTMLIFrameElement>(null);
+  const { user } = useAuth();
+
+  const handleDownloadPDF = () => {
+    const iframe = printIframeRef.current;
+    if (!iframe || !app || !user) return;
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!iframeDoc) return;
+
+    const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Applicant';
+    const userEmail = user.email || '';
+
+    // Compile print component layout to static markup string
+    const htmlContent = renderToStaticMarkup(
+      <ResumePrintView
+        data={app.tailored_cv_data}
+        userName={userName}
+        userEmail={userEmail}
+        parsedRequirements={app.job.parsed_requirements}
+      />
+    );
+
+    iframeDoc.open();
+    iframeDoc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Resume - ${userName}</title>
+          <style>
+            body {
+              margin: 0;
+              padding: 0;
+            }
+          </style>
+        </head>
+        <body>
+          ${htmlContent}
+        </body>
+      </html>
+    `);
+    iframeDoc.close();
+
+    // Trigger printing
+    setTimeout(() => {
+      if (iframe.contentWindow) {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      }
+    }, 300);
+  };
 
   useEffect(() => {
     fetchApplicationDetails();
@@ -237,15 +292,24 @@ export default function ApplicationDetailPage() {
             </div>
 
             {/* Quick Copy Button */}
-            <div>
+            <div className="flex gap-2">
               {activeTab === 'resume' && (
-                <button
-                  onClick={() => handleCopyToClipboard(resumeMarkdown, 'resume')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-400 hover:bg-emerald-300 text-black text-xs font-bold rounded-lg transition-all"
-                >
-                  {copiedText === 'resume' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                  <span>{copiedText === 'resume' ? 'Copied Resume!' : 'Copy Resume'}</span>
-                </button>
+                <>
+                  <button
+                    onClick={handleDownloadPDF}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-bold rounded-lg transition-all"
+                  >
+                    <Download className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Download PDF</span>
+                  </button>
+                  <button
+                    onClick={() => handleCopyToClipboard(resumeMarkdown, 'resume')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-400 hover:bg-emerald-300 text-black text-xs font-bold rounded-lg transition-all"
+                  >
+                    {copiedText === 'resume' ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    <span>{copiedText === 'resume' ? 'Copied Resume!' : 'Copy Resume'}</span>
+                  </button>
+                </>
               )}
               
               {activeTab === 'cover_letter' && (
@@ -294,6 +358,13 @@ export default function ApplicationDetailPage() {
         </div>
 
       </div>
+
+      {/* Hidden iframe for PDF print actions */}
+      <iframe
+        ref={printIframeRef}
+        style={{ display: 'none', position: 'absolute', width: '0px', height: '0px', border: 'none' }}
+        title="Resume Print Iframe"
+      />
     </DashboardLayout>
   );
 }

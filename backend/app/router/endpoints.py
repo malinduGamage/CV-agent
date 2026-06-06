@@ -485,7 +485,8 @@ def get_application(
         "job": {
             "title": app.job.title,
             "company": app.job.company,
-            "description": app.job.description
+            "description": app.job.description,
+            "parsed_requirements": app.job.parsed_requirements
         },
         "tailored_cv_data": app.tailored_cv_data,
         "cover_letter": app.cover_letter,
