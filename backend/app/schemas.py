@@ -14,6 +14,8 @@ class UserSyncSchema(BaseModel):
 
 # Profile Schemas
 class ContactInfoSchema(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
     phone: Optional[str] = None
     linkedin: Optional[str] = None
     github: Optional[str] = None

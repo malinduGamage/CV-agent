@@ -14,6 +14,8 @@ export default function ProfilePage() {
   const [profileId, setProfileId] = useState('');
   const [primaryTitle, setPrimaryTitle] = useState('');
   const [contactInfo, setContactInfo] = useState({
+    name: '',
+    email: '',
     phone: '',
     linkedin: '',
     github: '',
@@ -45,6 +47,8 @@ export default function ProfilePage() {
       setProfileId(data.id);
       setPrimaryTitle(data.primary_title || '');
       setContactInfo({
+        name: data.contact_info?.name || '',
+        email: data.contact_info?.email || '',
         phone: data.contact_info?.phone || '',
         linkedin: data.contact_info?.linkedin || '',
         github: data.contact_info?.github || '',
@@ -326,13 +330,41 @@ export default function ProfilePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="md:col-span-2">
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <User className="h-4 w-4 text-emerald-400" />
+                    <span>Full Name</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={contactInfo.name}
+                    onChange={(e) => setContactInfo({ ...contactInfo, name: e.target.value })}
+                    placeholder="First & Last Name"
+                    className="block w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 text-slate-200 placeholder-slate-650 text-xs transition-all"
+                  />
+                </div>
+
+                <div>
                   <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Primary Career Title</label>
                   <input
                     type="text"
                     value={primaryTitle}
                     onChange={(e) => setPrimaryTitle(e.target.value)}
                     placeholder="e.g. Senior Full-Stack Engineer | React Specialist"
+                    className="block w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 text-slate-200 placeholder-slate-650 text-xs transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <Mail className="h-4 w-4 text-emerald-400" />
+                    <span>Email Address</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={contactInfo.email}
+                    onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
+                    placeholder="name@email.com"
                     className="block w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-400/50 focus:border-emerald-400 text-slate-200 placeholder-slate-650 text-xs transition-all"
                   />
                 </div>

@@ -6,6 +6,8 @@ interface ResumePrintViewProps {
   data: {
     primary_title?: string;
     contact_info?: {
+      name?: string;
+      email?: string;
       phone?: string;
       linkedin?: string;
       github?: string;
@@ -42,12 +44,16 @@ interface ResumePrintViewProps {
 
 export function ResumePrintView({ data, userName, userEmail, parsedRequirements }: ResumePrintViewProps) {
   const { contact_info, education = [], experiences = [], projects = [] } = data;
+  const displayName = contact_info?.name || userName;
 
   // Build contact items array
   const contactItems: string[] = [];
   if (contact_info?.location) contactItems.push(contact_info.location);
   if (contact_info?.phone) contactItems.push(contact_info.phone);
-  if (userEmail) contactItems.push(userEmail);
+  
+  const emailVal = contact_info?.email || userEmail;
+  if (emailVal) contactItems.push(emailVal);
+  
   if (contact_info?.website) contactItems.push(contact_info.website);
   if (contact_info?.github) contactItems.push(contact_info.github.replace(/^https?:\/\/(www\.)?/, ''));
   if (contact_info?.linkedin) contactItems.push(contact_info.linkedin.replace(/^https?:\/\/(www\.)?/, ''));
@@ -172,7 +178,7 @@ export function ResumePrintView({ data, userName, userEmail, parsedRequirements 
 
       {/* Header (Stanford/MCS Centered Template) */}
       <div className="resume-header">
-        <h1 className="resume-name">{userName}</h1>
+        <h1 className="resume-name">{displayName}</h1>
         <hr className="resume-divider" />
         <p className="resume-contacts">
           {contactItems.join('  •  ')}
