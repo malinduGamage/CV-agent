@@ -446,18 +446,22 @@ def list_applications(
     """
     List all job application tailors for the current user.
     """
-    apps = db.query(Application).filter(Application.user_id == current_user.id).order_init_by = Application.applied_at.desc()
-    # Simple order manually since sqlalchemy order_by syntax requires correct syntax
     apps = db.query(Application).filter(Application.user_id == current_user.id).order_by(Application.applied_at.desc()).all()
     
     result = []
     for app in apps:
+        latest_log = db.query(AgentLog).filter(AgentLog.application_id == app.id).order_by(AgentLog.timestamp.desc()).first()
+        score = 85
+        if latest_log and latest_log.output_state:
+            score = latest_log.output_state.get("critic_score", 85)
+
         result.append({
             "id": app.id,
             "job_title": app.job.title,
             "company": app.job.company,
             "status": app.status,
-            "applied_at": app.applied_at
+            "applied_at": app.applied_at,
+            "critic_score": score
         })
     return result
 
